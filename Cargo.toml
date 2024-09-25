@@ -3,7 +3,7 @@ authors = ["Solana Maintainers <maintainers@solana.foundation>"]
 edition = "2021"
 name = "solana-accountsdb-plugin-postgres"
 description = "The Solana AccountsDb plugin for PostgreSQL database."
-version = "1.9.6"
+version = "2.0.10"
 repository = "https://github.com/solana-labs/solana"
 license = "Apache-2.0"
 homepage = "https://solana.com/"
@@ -13,6 +13,7 @@ documentation = "https://docs.rs/solana-validator"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+agave-geyser-plugin-interface = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
 bs58 = "0.4.0"
 chrono = { version = "0.4.11", features = ["serde"] }
 crossbeam-channel = "0.5"
@@ -24,26 +25,40 @@ postgres-openssl = { version = "0.5.0"}
 serde = "1.0.133"
 serde_derive = "1.0.103"
 serde_json = "1.0.74"
-solana-accountsdb-plugin-interface = { version = "=1.9.6" }
-solana-logger = { version = "=1.9.6" }
-solana-measure = { version = "=1.9.6" }
-solana-metrics = { version = "=1.9.6" }
-solana-runtime = { version = "=1.9.6" }
-solana-sdk = { version = "=1.9.6" }
-solana-transaction-status = { version = "=1.9.6" }
+solana-account-decoder = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+
+solana-logger = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-measure = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-metrics = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-runtime = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-program = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-zk-token-sdk = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"} 
+solana-sdk = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-transaction-status = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+
+
 thiserror = "1.0.30"
-tokio-postgres = "0.7.4"
+tokio-postgres = "0.7.12"
 
 [dev-dependencies]
 libc = "0.2.112"
 libloading = "0.7.2"
 serial_test = "0.5.1"
-solana-account-decoder = { version = "=1.9.6" }
-solana-core = { version = "=1.9.6" }
-solana-local-cluster = { version = "=1.9.6" }
-solana-net-utils = { version = "=1.9.6" }
-solana-streamer = { version = "=1.9.6" }
+solana-account-decoder = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-core = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-local-cluster = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-net-utils = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-streamer= {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
 tempfile = "3.2.0"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
+
+
+[patch.crates-io]
+curve25519-dalek = { git = "https://github.com/anza-xyz/curve25519-dalek.git", rev = "b500cdc2a920cd5bff9e2dd974d7b97349d61464" }
+
+solana-curve25519 = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-program = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-zk-sdk = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}
+solana-zk-token-sdk = {git = "https://github.com/lijunwangs/solana.git", rev = "3bfbd304b469c0d79782bedb5e4420b78dda24fe"}

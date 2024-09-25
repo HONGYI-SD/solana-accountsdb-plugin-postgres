@@ -1,6 +1,7 @@
 #![allow(clippy::integer_arithmetic)]
 
 use serde_json::json;
+use solana_sdk::poh_config::PohConfig;
 
 /// Integration testing for the PostgreSQL plugin
 /// This requires a PostgreSQL database named 'solana' be setup at localhost at port 5432
@@ -36,7 +37,7 @@ use {
         snapshot_utils,
     },
     solana_sdk::{
-        client::SyncClient, clock::Slot, commitment_config::CommitmentConfig,
+        clock::Slot, commitment_config::CommitmentConfig,
         epoch_schedule::MINIMUM_SLOTS_PER_EPOCH, hash::Hash,
     },
     solana_streamer::socket::SocketAddrSpace,
@@ -60,9 +61,10 @@ fn wait_for_next_snapshot(
 ) -> (PathBuf, (Slot, Hash)) {
     // Get slot after which this was generated
     let client = cluster
-        .get_validator_client(&cluster.entry_point_info.id)
+        .get_validator_client(&cluster.entry_point_info.pubkey())
         .unwrap();
     let last_slot = client
+        .rpc_client()
         .get_slot_with_commitment(CommitmentConfig::processed())
         .expect("Couldn't get slot");
 
@@ -85,7 +87,7 @@ fn wait_for_next_snapshot(
                     full_snapshot_archive_info.path().clone(),
                     (
                         full_snapshot_archive_info.slot(),
-                        *full_snapshot_archive_info.hash(),
+                        full_snapshot_archive_info.hash().0,
                     ),
                 );
             }
@@ -163,7 +165,8 @@ fn setup_snapshot_validator_config(
     let snapshot_config = SnapshotConfig {
         full_snapshot_archive_interval_slots: snapshot_interval_slots,
         incremental_snapshot_archive_interval_slots: Slot::MAX,
-        snapshot_archives_dir: snapshot_archives_dir.path().to_path_buf(),
+        full_snapshot_archives_dir: snapshot_archives_dir.path().to_path_buf(),
+        incremental_snapshot_archives_dir: snapshot_archives_dir.path().to_path_buf(),
         bank_snapshots_dir: bank_snapshots_dir.path().to_path_buf(),
         ..SnapshotConfig::default()
     };
@@ -173,15 +176,14 @@ fn setup_snapshot_validator_config(
 
     let (plugin_config_dir, path) = generate_accountsdb_plugin_config();
 
-    let accountsdb_plugin_config_files = Some(vec![path]);
+    let on_start_geyser_plugin_config_files = Some(vec![path]);
 
     // Create the validator config
     let validator_config = ValidatorConfig {
-        snapshot_config: Some(snapshot_config),
+        snapshot_config: snapshot_config,
         account_paths: account_storage_paths,
-        accounts_db_caching_enabled: true,
         accounts_hash_interval_slots: snapshot_interval_slots,
-        accountsdb_plugin_config_files,
+        on_start_geyser_plugin_config_files,
         enforce_ulimit_nofile: false,
         ..ValidatorConfig::default()
     };
@@ -193,6 +195,23 @@ fn setup_snapshot_validator_config(
         validator_config,
         plugin_config_dir,
     }
+}
+
+
+fn test_local_cluster() {
+    solana_logger::setup();
+
+    let validator_config = ValidatorConfig::default_for_test();
+    let num_nodes = 1;
+    let mut config = ClusterConfig {
+        cluster_lamports: 10_000_000,
+        poh_config: PohConfig::new_sleep(Duration::from_millis(50)),
+        node_stakes: vec![100; num_nodes],
+        validator_configs: make_identical_validator_configs(&validator_config, num_nodes),
+        ..ClusterConfig::default()
+    };
+
+    let cluster = LocalCluster::new(&mut config, SocketAddrSpace::Unspecified);
 }
 
 fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSpace) {
@@ -210,6 +229,7 @@ fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSp
         stakers_slot_offset: MINIMUM_SLOTS_PER_EPOCH as u64,
         ..ClusterConfig::default()
     };
+    info!("starting cluster....");
     let cluster = LocalCluster::new(&mut config, socket_addr_space);
     assert_eq!(cluster.validators.len(), NUM_NODES);
 }
@@ -232,8 +252,16 @@ fn test_postgres_plugin() {
         }
     }
 
+    info!("Starting local cluster and exit");
+
+    test_local_cluster();
+
+    info!("Starting my local cluster and exit");
+
     let socket_addr_space = SocketAddrSpace::new(true);
     test_local_cluster_start_and_exit_with_config(socket_addr_space);
+
+    info!("Setup cluster with snapshot");
 
     // First set up the cluster with 1 node
     let snapshot_interval_slots = 50;
@@ -245,7 +273,7 @@ fn test_postgres_plugin() {
     let mut file = File::open(
         &leader_snapshot_test_config
             .validator_config
-            .accountsdb_plugin_config_files
+            .on_start_geyser_plugin_config_files
             .as_ref()
             .unwrap()[0],
     )
@@ -282,9 +310,7 @@ fn test_postgres_plugin() {
     let snapshot_archives_dir = &leader_snapshot_test_config
         .validator_config
         .snapshot_config
-        .as_ref()
-        .unwrap()
-        .snapshot_archives_dir;
+        .full_snapshot_archives_dir;
     info!("Waiting for snapshot");
     let (archive_filename, archive_snapshot_hash) =
         wait_for_next_snapshot(&cluster, snapshot_archives_dir);
