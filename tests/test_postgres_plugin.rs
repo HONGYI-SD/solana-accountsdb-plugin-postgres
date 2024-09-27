@@ -141,6 +141,8 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     
     let target_debug_path = current_dir.join("target").join(mode);
 
+    info!("The target debug path: {target_debug_path:?}");
+
     let mut config_content = json!({
         "libpath": target_debug_path.join(library_name).to_str().unwrap(),
         "connection_str": "host=localhost user=solana password=solana port=5432",
