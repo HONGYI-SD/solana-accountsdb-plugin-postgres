@@ -129,6 +129,7 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     let current_dir: PathBuf = Path::new(path.to_str().unwrap())
         .parent() // Get the parent directory (one level up)
         .and_then(|p| p.parent()) // Two levels up
+        .and_then(|p| p.parent()) // 3 levels up
         .unwrap() // Handle the case where there is no parent (for example, at the root)
         .to_path_buf();
 
