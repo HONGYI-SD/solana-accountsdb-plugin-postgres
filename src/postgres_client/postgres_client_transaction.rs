@@ -591,8 +591,8 @@ impl SimplePostgresClient {
 
         if let Err(err) = result {
             let msg = format!(
-                "Failed to persist the update of transaction info to the PostgreSQL database. Error: {:?}",
-                err
+                "Failed to persist the update of transaction info to the PostgreSQL database. Error: {:?} meta: {:?}",
+                err, transaction_info.meta
             );
             error!("{}", msg);
             return Err(GeyserPluginError::AccountsUpdateError { msg });
