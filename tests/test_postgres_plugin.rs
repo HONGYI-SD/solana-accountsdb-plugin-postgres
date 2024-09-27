@@ -333,7 +333,9 @@ fn test_postgres_plugin() {
         .snapshot_config
         .full_snapshot_archives_dir;
     info!("Waiting for snapshot");
-    let (archive_filename, archive_snapshot_hash) =
-        wait_for_next_snapshot(&cluster, snapshot_archives_dir);
-    info!("Found: {:?} {:?}", archive_filename, archive_snapshot_hash);
+    // let (archive_filename, archive_snapshot_hash) =
+    //     wait_for_next_snapshot(&cluster, snapshot_archives_dir);
+
+    let snap_info = cluster.wait_for_next_full_snapshot(snapshot_archives_dir, None);
+    info!("Found: full snapshot {:?}", snap_info);
 }
