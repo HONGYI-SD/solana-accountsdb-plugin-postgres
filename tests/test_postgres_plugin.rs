@@ -15,7 +15,7 @@ use solana_sdk::poh_config::PohConfig;
 /// sudo -u postgres psql --command "CREATE USER solana WITH SUPERUSER PASSWORD 'solana';"
 /// sudo -u postgres createdb -O solana solana
 /// PGPASSWORD=solana psql -U solana -p 5432 -h localhost -w -d solana -f scripts/create_schema.sql
-///
+/// Before run "cargo test", do a build by "cargo build" otherwise it may use stale build of the dynamic library.
 /// The test will cover transmitting accounts, transaction and slot and
 /// block metadata.
 use {
@@ -63,6 +63,8 @@ fn wait_for_next_snapshot(
     let client = cluster
         .get_validator_client(&cluster.entry_point_info.pubkey())
         .unwrap();
+
+    info!("zzzzz got client.");
     let last_slot = client
         .rpc_client()
         .get_slot_with_commitment(CommitmentConfig::processed())
