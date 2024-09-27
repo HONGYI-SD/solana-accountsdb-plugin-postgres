@@ -330,7 +330,6 @@ pub enum DbTransactionErrorCode {
     WouldExceedMaxBlockCostLimit,
     UnsupportedVersion,
     InvalidWritableAccount,
-    WouldExceedMaxAccountDataCostLimit,
     TooManyAccountLocks,
     AddressLookupTableNotFound,
     InvalidAddressLookupTableOwner,

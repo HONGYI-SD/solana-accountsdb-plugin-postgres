@@ -138,7 +138,7 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     } else {
         "release"
     };
-    
+
     let target_debug_path = current_dir.join("target").join(mode);
 
     info!("The target debug path: {target_debug_path:?}");
@@ -256,7 +256,6 @@ fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSp
 #[test]
 #[serial]
 fn test_postgres_plugin() {
-
     solana_logger::setup_with_default(RUST_LOG_FILTER);
 
     unsafe {
@@ -286,7 +285,7 @@ fn test_postgres_plugin() {
     // First set up the cluster with 1 node
     let snapshot_interval_slots = 50;
     let num_account_paths = 3;
-    
+
     let leader_snapshot_test_config =
         setup_snapshot_validator_config(snapshot_interval_slots, num_account_paths);
 
