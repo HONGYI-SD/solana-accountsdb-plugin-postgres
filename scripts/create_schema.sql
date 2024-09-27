@@ -58,7 +58,7 @@ Create TYPE "TransactionErrorCode" AS ENUM (
     'InvalidAddressLookupTableData',
     'InvalidAddressLookupTableIndex',
     'InvalidRentPayingAccount',
-    'WouldExceedMaxVoteCostLimit'
+    'WouldExceedMaxVoteCostLimit',
     'WouldExceedAccountDataBlockLimit',
     'WouldExceedAccountDataTotalLimit',
     'DuplicateInstruction',
