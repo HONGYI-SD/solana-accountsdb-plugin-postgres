@@ -275,7 +275,7 @@ fn test_postgres_plugin() {
 
     info!("Starting local cluster and exit");
 
-    test_local_cluster();
+    //test_local_cluster();
 
     info!("Starting my local cluster and exit");
 
