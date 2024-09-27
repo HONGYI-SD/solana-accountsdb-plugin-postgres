@@ -124,10 +124,9 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     path.push("accounts_db_plugin.json");
     let mut config_file = File::create(path.clone()).unwrap();
 
-    let current_file = file!();
     let library_name = "libsolana_accountsdb_plugin_postgres.so";
     // Convert it to a Path and get the parent directory
-    let current_dir: PathBuf = Path::new(current_file)
+    let current_dir: PathBuf = Path::new(path.to_str().unwrap())
         .parent() // Get the parent directory (one level up)
         .and_then(|p| p.parent()) // Two levels up
         .unwrap() // Handle the case where there is no parent (for example, at the root)
