@@ -37,8 +37,8 @@ use {
         snapshot_utils,
     },
     solana_sdk::{
-        clock::Slot, commitment_config::CommitmentConfig,
-        epoch_schedule::MINIMUM_SLOTS_PER_EPOCH, hash::Hash,
+        clock::Slot, commitment_config::CommitmentConfig, epoch_schedule::MINIMUM_SLOTS_PER_EPOCH,
+        hash::Hash,
     },
     solana_streamer::socket::SocketAddrSpace,
     std::{
@@ -124,8 +124,25 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     path.push("accounts_db_plugin.json");
     let mut config_file = File::create(path.clone()).unwrap();
 
+    let current_file = file!();
+    let library_name = "libsolana_accountsdb_plugin_postgres.so";
+    // Convert it to a Path and get the parent directory
+    let current_dir: PathBuf = Path::new(current_file)
+        .parent() // Get the parent directory (one level up)
+        .and_then(|p| p.parent()) // Two levels up
+        .unwrap() // Handle the case where there is no parent (for example, at the root)
+        .to_path_buf();
+
+    let mode = if cfg!(debug_assertions) {
+        "debug"
+    } else {
+        "release"
+    };
+    
+    let target_debug_path = current_dir.join("target").join(mode);
+
     let mut config_content = json!({
-        "libpath": "libsolana_accountsdb_plugin_postgres.so",
+        "libpath": target_debug_path.join(library_name).to_str().unwrap(),
         "connection_str": "host=localhost user=solana password=solana port=5432",
         "threads": 20,
         "batch_size": 20,
@@ -139,7 +156,8 @@ fn generate_accountsdb_plugin_config() -> (TempDir, PathBuf) {
     });
 
     if std::env::consts::OS == "macos" {
-        config_content["libpath"] = json!("libsolana_accountsdb_plugin_postgres.dylib");
+        let library_name = "libsolana_accountsdb_plugin_postgres.dylib";
+        config_content["libpath"] = json!(target_debug_path.join(library_name).to_str().unwrap());
     }
 
     write!(config_file, "{}", config_content.to_string()).unwrap();
@@ -197,7 +215,6 @@ fn setup_snapshot_validator_config(
     }
 }
 
-
 fn test_local_cluster() {
     solana_logger::setup();
 
@@ -211,7 +228,7 @@ fn test_local_cluster() {
         ..ClusterConfig::default()
     };
 
-    let cluster = LocalCluster::new(&mut config, SocketAddrSpace::Unspecified);
+    let _cluster = LocalCluster::new(&mut config, SocketAddrSpace::Unspecified);
 }
 
 fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSpace) {
@@ -237,6 +254,7 @@ fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSp
 #[test]
 #[serial]
 fn test_postgres_plugin() {
+
     solana_logger::setup_with_default(RUST_LOG_FILTER);
 
     unsafe {
@@ -266,7 +284,7 @@ fn test_postgres_plugin() {
     // First set up the cluster with 1 node
     let snapshot_interval_slots = 50;
     let num_account_paths = 3;
-
+    
     let leader_snapshot_test_config =
         setup_snapshot_validator_config(snapshot_interval_slots, num_account_paths);
 
