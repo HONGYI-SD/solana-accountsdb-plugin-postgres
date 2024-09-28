@@ -40,6 +40,7 @@ use {
         clock::Slot, commitment_config::CommitmentConfig, epoch_schedule::MINIMUM_SLOTS_PER_EPOCH,
         hash::Hash,
     },
+    solana_rpc::rpc::JsonRpcConfig,
     solana_streamer::socket::SocketAddrSpace,
     std::{
         fs::{self, File},
@@ -200,6 +201,9 @@ fn setup_snapshot_validator_config(
 
     let on_start_geyser_plugin_config_files = Some(vec![path]);
 
+    let mut rpc_config = JsonRpcConfig::default();
+    rpc_config.full_api = true;
+
     // Create the validator config
     let validator_config = ValidatorConfig {
         snapshot_config: snapshot_config,
@@ -207,6 +211,7 @@ fn setup_snapshot_validator_config(
         accounts_hash_interval_slots: snapshot_interval_slots,
         on_start_geyser_plugin_config_files,
         enforce_ulimit_nofile: false,
+        rpc_config,
         ..ValidatorConfig::default()
     };
 

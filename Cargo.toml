@@ -48,6 +48,7 @@ solana-account-decoder = {git = "https://github.com/lijunwangs/solana.git", rev 
 solana-core = {git = "https://github.com/lijunwangs/solana.git", rev = "4209c215ce27e161e7ce38a560f0c4536875f8ff"}
 solana-local-cluster = {git = "https://github.com/lijunwangs/solana.git", rev = "4209c215ce27e161e7ce38a560f0c4536875f8ff"}
 solana-net-utils = {git = "https://github.com/lijunwangs/solana.git", rev = "4209c215ce27e161e7ce38a560f0c4536875f8ff"}
+solana-rpc = {git = "https://github.com/lijunwangs/solana.git", rev = "4209c215ce27e161e7ce38a560f0c4536875f8ff"}
 solana-streamer= {git = "https://github.com/lijunwangs/solana.git", rev = "4209c215ce27e161e7ce38a560f0c4536875f8ff"}
 tempfile = "3.2.0"
 
