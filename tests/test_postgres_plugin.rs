@@ -1,8 +1,5 @@
 #![allow(clippy::integer_arithmetic)]
 
-use serde_json::json;
-use solana_sdk::poh_config::PohConfig;
-
 /// Integration testing for the PostgreSQL plugin
 /// This requires a PostgreSQL database named 'solana' be setup at localhost at port 5432
 /// This is automatically setup in the CI environment.
@@ -21,6 +18,7 @@ use solana_sdk::poh_config::PohConfig;
 use {
     libloading::Library,
     log::*,
+    serde_json::json,
     serial_test::serial,
     solana_accountsdb_plugin_postgres::{
         accountsdb_plugin_postgres::AccountsDbPluginPostgresConfig,
@@ -28,81 +26,24 @@ use {
     },
     solana_core::validator::ValidatorConfig,
     solana_local_cluster::{
-        cluster::Cluster,
         local_cluster::{ClusterConfig, LocalCluster},
         validator_configs::*,
     },
-    solana_runtime::{
-        snapshot_archive_info::SnapshotArchiveInfoGetter, snapshot_config::SnapshotConfig,
-        snapshot_utils,
-    },
-    solana_sdk::{
-        clock::Slot, commitment_config::CommitmentConfig, epoch_schedule::MINIMUM_SLOTS_PER_EPOCH,
-        hash::Hash,
-    },
     solana_rpc::rpc::JsonRpcConfig,
+    solana_runtime::snapshot_config::SnapshotConfig,
+    solana_sdk::{clock::Slot, epoch_schedule::MINIMUM_SLOTS_PER_EPOCH},
     solana_streamer::socket::SocketAddrSpace,
     std::{
         fs::{self, File},
         io::Read,
         io::Write,
         path::{Path, PathBuf},
-        thread::sleep,
-        time::Duration,
     },
     tempfile::TempDir,
 };
 
 const RUST_LOG_FILTER: &str =
     "info,solana_core::replay_stage=warn,solana_local_cluster=info,local_cluster=info";
-
-fn wait_for_next_snapshot(
-    cluster: &LocalCluster,
-    snapshot_archives_dir: &Path,
-) -> (PathBuf, (Slot, Hash)) {
-    // Get slot after which this was generated
-    let client = cluster
-        .get_validator_client(&cluster.entry_point_info.pubkey())
-        .unwrap();
-
-    info!("zzzzz got client.");
-    let last_slot = client
-        .rpc_client()
-        .get_slot_with_commitment(CommitmentConfig::processed())
-        .expect("Couldn't get slot");
-
-    // Wait for a snapshot for a bank >= last_slot to be made so we know that the snapshot
-    // must include the transactions just pushed
-    trace!(
-        "Waiting for snapshot archive to be generated with slot > {}",
-        last_slot
-    );
-    loop {
-        if let Some(full_snapshot_archive_info) =
-            snapshot_utils::get_highest_full_snapshot_archive_info(snapshot_archives_dir)
-        {
-            trace!(
-                "full snapshot for slot {} exists",
-                full_snapshot_archive_info.slot()
-            );
-            if full_snapshot_archive_info.slot() >= last_slot {
-                return (
-                    full_snapshot_archive_info.path().clone(),
-                    (
-                        full_snapshot_archive_info.slot(),
-                        full_snapshot_archive_info.hash().0,
-                    ),
-                );
-            }
-            trace!(
-                "full snapshot slot {} < last_slot {}",
-                full_snapshot_archive_info.slot(),
-                last_slot
-            );
-        }
-        sleep(Duration::from_millis(1000));
-    }
-}
 
 fn farf_dir() -> PathBuf {
     let dir: String = std::env::var("FARF_DIR").unwrap_or_else(|_| "farf".to_string());
@@ -224,22 +165,6 @@ fn setup_snapshot_validator_config(
     }
 }
 
-fn test_local_cluster() {
-    solana_logger::setup();
-
-    let validator_config = ValidatorConfig::default_for_test();
-    let num_nodes = 1;
-    let mut config = ClusterConfig {
-        cluster_lamports: 10_000_000,
-        poh_config: PohConfig::new_sleep(Duration::from_millis(50)),
-        node_stakes: vec![100; num_nodes],
-        validator_configs: make_identical_validator_configs(&validator_config, num_nodes),
-        ..ClusterConfig::default()
-    };
-
-    let _cluster = LocalCluster::new(&mut config, SocketAddrSpace::Unspecified);
-}
-
 fn test_local_cluster_start_and_exit_with_config(socket_addr_space: SocketAddrSpace) {
     const NUM_NODES: usize = 1;
     let config = ValidatorConfig {
@@ -338,8 +263,6 @@ fn test_postgres_plugin() {
         .snapshot_config
         .full_snapshot_archives_dir;
     info!("Waiting for snapshot");
-    // let (archive_filename, archive_snapshot_hash) =
-    //     wait_for_next_snapshot(&cluster, snapshot_archives_dir);
 
     let snap_info = cluster.wait_for_next_full_snapshot(snapshot_archives_dir, None);
     info!("Found: full snapshot {:?}", snap_info);

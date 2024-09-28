@@ -346,7 +346,7 @@ pub enum DbTransactionErrorCode {
     ResanitizationNeeded,
     ProgramExecutionTemporarilyRestricted,
     UnbalancedTransaction,
-    ProgramCacheHitMaxLimit
+    ProgramCacheHitMaxLimit,
 }
 
 impl From<&TransactionError> for DbTransactionErrorCode {
