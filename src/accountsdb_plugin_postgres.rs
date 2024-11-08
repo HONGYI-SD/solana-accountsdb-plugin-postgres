@@ -36,6 +36,8 @@ impl std::fmt::Debug for AccountsDbPluginPostgres {
 pub struct AccountsDbPluginPostgresConfig {
     pub host: Option<String>,
     pub user: Option<String>,
+    pub password: Option<String>,
+    pub dbname: Option<String>,
     pub port: Option<u16>,
     pub connection_str: Option<String>,
     pub threads: Option<usize>,
@@ -357,7 +359,7 @@ impl GeyserPlugin for AccountsDbPluginPostgres {
                 )));
             }
             Some(client) => match block_info {
-                ReplicaBlockInfoVersions::V0_0_4(block_info) => {
+                ReplicaBlockInfoVersions::V0_0_3(block_info) => {
                     let result = client.update_block_metadata(block_info);
 
                     if let Err(err) = result {

@@ -9,7 +9,7 @@ use {
         AccountsDbPluginPostgresConfig, AccountsDbPluginPostgresError,
     },
     agave_geyser_plugin_interface::geyser_plugin_interface::{
-        GeyserPluginError, ReplicaAccountInfoV3, ReplicaBlockInfoV4, SlotStatus,
+        GeyserPluginError, ReplicaAccountInfoV3, ReplicaBlockInfoV3, SlotStatus,
     },
     chrono::Utc,
     crossbeam_channel::{bounded, Receiver, RecvTimeoutError, Sender},
@@ -229,9 +229,11 @@ impl SimplePostgresClient {
                 )));
             }
             format!(
-                "host={} user={} port={}",
+                "host={} user={} password={} dbname={} port={}",
                 config.host.as_ref().unwrap(),
                 config.user.as_ref().unwrap(),
+                config.password.as_ref().unwrap(),
+                config.dbname.as_ref().unwrap(),
                 port
             )
         };
@@ -1045,7 +1047,7 @@ impl ParallelPostgresClient {
 
     pub fn update_block_metadata(
         &self,
-        block_info: &ReplicaBlockInfoV4,
+        block_info: &ReplicaBlockInfoV3,
     ) -> Result<(), GeyserPluginError> {
         if let Err(err) = self.sender.send(DbWorkItem::UpdateBlockMetadata(Box::new(
             UpdateBlockMetadataRequest {
